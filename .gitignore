@@ -1,0 +1,8 @@
+
+#Backend#
+.idea
+__pycache__
+backend/venv/
+
+#Frontend#
+node_modules
