@@ -1,7 +1,9 @@
 fastapi
+fastapi-users[sqlalchemy]
 pydantic
 pydantic_settings
 uvicorn
 sqlalchemy
 psycopg2
+asyncpg
 alembic
