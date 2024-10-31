@@ -13,7 +13,7 @@ function ProfilePage() {
 
     const navigate = useNavigate();
 
-    const {data, isLoading, isError} = useQuery({
+    const {data, isLoading, isError, isSuccess} = useQuery({
         queryKey: ["user_profile"],
         queryFn: getUserData,
         select: data => data.data,
@@ -33,6 +33,7 @@ function ProfilePage() {
             }
           )
     });
+
 
     const handleLogout = () => {
         mutation.mutate()
@@ -57,16 +58,19 @@ function ProfilePage() {
         )
     }
 
-    return(
-        <>
-            <p>Profile Page</p>
-            <p>{data.username}</p>
-            <p>{data.email}</p>
-            <Link to="/"><button>To MainPage</button></Link>
-            <button onClick={handleLogout}>Logout</button>
-        </>
-        
-    )
+    if (isSuccess) {
+        return(
+            <>
+                <p>Profile Page</p>
+                <p>{data.username}</p>
+                <p>{data.email}</p>
+                <Link to="/"><button>To MainPage</button></Link>
+                <button onClick={handleLogout}>Logout</button>
+                <button onClick={() => (navigate("/edit_profile"))}>Edit profile</button>
+            </>
+            
+        )
+    }
 }
 
 export default ProfilePage;
