@@ -10,9 +10,15 @@ from auth.database import User
 from auth.manager import get_user_manager
 from auth.schemas import UserRead, UserCreate, UserUpdate
 
+from game.game import router as game_router
+
+
 app = FastAPI(
     title="NOX"
 )
+
+
+########## CORS ##########
 
 origins = [
     "http://localhost:5173",
@@ -28,6 +34,9 @@ app.add_middleware(
                    "Authorization"],
     expose_headers=["Content-Type", "Cookie", "Set-Cookie"]
 )
+
+
+########## Auth routers ##########
 
 fastapi_users = FastAPIUsers[User, int](
     get_user_manager,
@@ -51,6 +60,12 @@ app.include_router(
     prefix="/users",
     tags=["users"],
 )
+
+
+########## Game routers ##########
+
+app.include_router(game_router, tags=["game"])
+
 
 current_user = fastapi_users.current_user()
 

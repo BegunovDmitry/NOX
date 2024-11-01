@@ -1,5 +1,6 @@
 fastapi
 fastapi-users[sqlalchemy]
+websockets
 pydantic
 pydantic_settings
 uvicorn
@@ -7,3 +8,4 @@ sqlalchemy
 psycopg2
 asyncpg
 alembic
+redis
