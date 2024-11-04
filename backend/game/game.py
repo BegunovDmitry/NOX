@@ -19,39 +19,74 @@ fastapi_users = FastAPIUsers[User, int](
     get_user_manager,
     [auth_backend],
 )
-current_user = fastapi_users.current_user()
+current_user = fastapi_users.current_user( optional=True)
 
 @router.post("/create_game_session")
 def create_game_session(user: User = Depends(current_user)):
     redis = redis_lib.Redis(host='localhost', port=6379, db=0)
-    session_key = secrets.token_hex(nbytes=8)
-    redis.set(session_key,
-              str({
-                  "player_1": secrets.token_hex(nbytes=8),
-                  "player_2": secrets.token_hex(nbytes=8),
-                  "turnsX": [],
-                  "turnsO": [],
-                  "created_at": datetime.datetime.utcnow()
-              }))
-    return session_key
+    session_id = secrets.token_hex(nbytes=8)
+    if user:
+        redis.set(session_id,
+                  str({
+                      "player_1": user.id,
+                      "player_2": secrets.token_hex(nbytes=8),
+                      "name_player_1": user.username,
+                      "name_player_2": "Anonym",
+                      "turnsX": [],
+                      "turnsO": [],
+                      "created_at": datetime.datetime.utcnow()
+                  }))
+    else:
+        redis.set(session_id,
+                  str({
+                      "player_1": secrets.token_hex(nbytes=8),
+                      "player_2": secrets.token_hex(nbytes=8),
+                      "name_player_1": "Anonym",
+                      "name_player_2": "Anonym",
+                      "turnsX": [],
+                      "turnsO": [],
+                      "created_at": datetime.datetime.utcnow()
+                  }))
+    redis.close()
+    return session_id
 
-@router.websocket("/game_session/{game_id}/{player_num}")
-async def websocket_game_endpoint(websocket: WebSocket, game_id: str, player_num: str):
+@router.post("/connect_game_session/{session_id}")
+def create_game_session(session_id: str, user: User = Depends(current_user)):
+    if user:
+        redis = redis_lib.Redis(host='localhost', port=6379, db=0)
+        session_data = redis.get(session_id).decode("utf-8")
+        session_data = eval(session_data)
+        session_data["player_2"] = user.id
+        session_data["name_player_2"] = user.username
+        redis.set(session_id,str(session_data))
+        redis.close()
+    return {"detail": "Success"}
+
+
+@router.websocket("/game_session/{session_id}/{player_num}")
+async def websocket_game_endpoint(websocket: WebSocket, session_id: str, player_num: str):
     redis = redis_lib.Redis(host='localhost', port=6379, db=0)
-    session_data = redis.get(game_id).decode("utf-8")
+    session_data = redis.get(session_id).decode("utf-8")
     session_data = eval(session_data)
     redis.close()
     await websocket.accept()
-    WS_sessions[session_data[f"player_{player_num}"]] = websocket
+    if session_id not in WS_sessions:
+        WS_sessions[session_id] = dict()
+    WS_sessions[session_id][session_data[f"player_{player_num}"]] = websocket
+    for connection in WS_sessions[session_id]:
+        await WS_sessions[session_id][connection].send_text(f"{session_data[f'name_player_{player_num}']} has conected")
     try:
         while True:
             data = await websocket.receive_text()
-            if WS_sessions[session_data["player_1"]] == websocket:
-                await WS_sessions[session_data["player_2"]].send_text(f"Message text from player 1: {data}")
+            if WS_sessions[session_id][session_data["player_1"]] == websocket:
+                await WS_sessions[session_id][session_data["player_2"]].send_text(f"Message text from {session_data['name_player_1']}: {data}")
             else:
-                await WS_sessions[session_data["player_1"]].send_text(f"Message text from player 2: {data}")
+                await WS_sessions[session_id][session_data["player_1"]].send_text(f"Message text from {session_data['name_player_2']}: {data}")
     except WebSocketDisconnect:
-        del WS_sessions[session_data[f"player_{player_num}"]]
-        for connection in WS_sessions:
-            await WS_sessions[connection].send_text(f"Player {player_num} has disconected")
+        del WS_sessions[session_id][session_data[f"player_{player_num}"]]
+        if not WS_sessions[session_id]:
+            del WS_sessions[session_id]
+        else:
+            for connection in WS_sessions[session_id]:
+                await WS_sessions[session_id][connection].send_text(f"{session_data[f'name_player_{player_num}']} has disconected")
 

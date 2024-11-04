@@ -5,6 +5,7 @@ import ProfilePage from "./profile/ProfilePage";
 import LoginPage from "./Profile/Login_Register/LoginPage";
 import RegisterPage from "./Profile/Login_Register/RegisterPage";
 import EditProfilePage from "./Profile/Edit/EditProfilePage";
+import OnlineGamePage from "./Game/OnlineGamePage";
 
 function App() {
   
@@ -22,6 +23,7 @@ function App() {
           <Route path="/login" element={<LoginPage/>}/>
           <Route path="/register" element={<RegisterPage/>}/>
           <Route path="/edit_profile" element={<EditProfilePage/>}/>
+          <Route path="/online_game" element={<OnlineGamePage/>}/>
         </Routes>
       </>
   )

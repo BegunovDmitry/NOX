@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import "./MainPage.css"
 
-import GameField from "../Game/Components/GameField";
+import OflineGameField from "../Game/Components/OflineGameField";
 
 
 function MainPage() {
@@ -12,9 +12,10 @@ function MainPage() {
         <>
             <div className="title"><p>Main Page</p></div>
 
-            <GameField/>
+            <OflineGameField/>
 
             <button onClick={() => (navigate('/my_profile'))}>To ProfilePage</button>
+            <button onClick={() => (navigate('/online_game'))}>Online game</button>
         </>
     )
 };

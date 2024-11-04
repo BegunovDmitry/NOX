@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import "./GameField.css"
+import "./GameFields.css"
 
 
 function signRandom() {
@@ -21,7 +21,7 @@ const disableAll = () => {
     }
 }
 
-function GameField() {
+function OflineGameField() {
 
     const winCombos = [
         ['1','2','3'], ['4','5','6'], ['7','8','9'], //rows
@@ -39,6 +39,7 @@ function GameField() {
             setSign("O")
         }
     }, [])
+
 
     const checkWin = () => {
         if ((turnsX.length + turnsO.length) >= 9) {
@@ -95,4 +96,4 @@ function GameField() {
     )
 }
 
-export default GameField;
+export default OflineGameField;
