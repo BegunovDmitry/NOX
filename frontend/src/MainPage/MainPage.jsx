@@ -15,7 +15,7 @@ function MainPage() {
             <OflineGameField/>
 
             <button onClick={() => (navigate('/my_profile'))}>To ProfilePage</button>
-            <button onClick={() => (navigate('/online_game'))}>Online game</button>
+            <button onClick={() => (navigate('/create_game'))}>Online game</button>
         </>
     )
 };

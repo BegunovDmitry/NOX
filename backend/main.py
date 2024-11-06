@@ -11,6 +11,7 @@ from auth.manager import get_user_manager
 from auth.schemas import UserRead, UserCreate, UserUpdate
 
 from game.game import router as game_router
+from game.game_handler import router as game_handler_router
 
 
 app = FastAPI(
@@ -65,6 +66,7 @@ app.include_router(
 ########## Game routers ##########
 
 app.include_router(game_router, tags=["game"])
+app.include_router(game_handler_router, tags=["game"])
 
 
 current_user = fastapi_users.current_user()
