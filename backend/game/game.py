@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 
 import redis as redis_lib
+
+import datetime
 
 
 WS_sessions = dict()
@@ -22,6 +24,7 @@ async def websocket_game_endpoint(websocket: WebSocket, session_id: str, player_
     if session_id not in WS_sessions:
         WS_sessions[session_id] = dict()
     WS_sessions[session_id][session_data[f"player_{player_num}"]] = websocket
+    print(WS_sessions)
     for connection in WS_sessions[session_id]:
         await WS_sessions[session_id][connection].send_text(f"connect {player_num}")
     try:
@@ -35,8 +38,7 @@ async def websocket_game_endpoint(websocket: WebSocket, session_id: str, player_
                 changing_data[f"turns{changing_data['sign_player1']}"] = changing_data[f"turns{changing_data['sign_player1']}"] + [data]
                 redis.set(session_id, str(changing_data))
                 redis.close()
-                await WS_sessions[session_id][session_data["player_2"]].send_text({data})
-                print(changing_data)
+                await WS_sessions[session_id][changing_data["player_2"]].send_text({data})
 
             else:
                 redis = redis_lib.Redis(host='localhost', port=6379, db=0)
@@ -45,8 +47,7 @@ async def websocket_game_endpoint(websocket: WebSocket, session_id: str, player_
                 changing_data[f"turns{changing_data['sign_player2']}"] = changing_data[f"turns{changing_data['sign_player2']}"] + [data]
                 redis.set(session_id, str(changing_data))
                 redis.close()
-                await WS_sessions[session_id][session_data["player_1"]].send_text(data)
-                print(changing_data)
+                await WS_sessions[session_id][changing_data["player_1"]].send_text(data)
 
     except WebSocketDisconnect:
         del WS_sessions[session_id][session_data[f"player_{player_num}"]]
