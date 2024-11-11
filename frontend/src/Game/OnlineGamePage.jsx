@@ -1,4 +1,5 @@
 import OnlineGameField from "./Components/OnlineGameField";
+import DisconnectPopup from "./Components/DisconnectPopup";
 
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom";
@@ -39,6 +40,11 @@ const setTurns = (session_id, oldLocalTurns, newTurnX, newTurnsO) => {
 
 }
 
+const clearLocalStorage = (session_id) => {
+    localStorage.removeItem(session_id)
+    localStorage.removeItem(`turns / ${session_id}`)
+}
+
 let localTurns
 
 
@@ -59,7 +65,7 @@ function OnlineGamePage() {
         localTurns = JSON.parse(localStorage.getItem(`turns / ${session_id}`))
     }
     
-    const {data, isLoading, isSuccess, isError, error} = useQuery({
+    const {data, isLoading, isSuccess} = useQuery({
         queryKey: ["game_session", {session_id}],
         queryFn: () => connectGameSession(session_id),
         select: data => data.data,
@@ -90,6 +96,9 @@ function OnlineGamePage() {
                         setTurns(session_id, localTurns, [event.data], [])
                         setLocalTurns()
                     }
+                } else if (event.data == "player exit") {
+                    clearLocalStorage(session_id)
+                    navigate("/")
                 }
             };
 
@@ -108,10 +117,7 @@ function OnlineGamePage() {
     const sendMessage = () => {
         if (ws && lastChange) {
             ws.send(lastChange);
-            console.log("begin");
             setlastChange("")
-            console.log("end");
-
         }
     };
 
@@ -128,6 +134,14 @@ function OnlineGamePage() {
         }
     }, [lastChange])
 
+    const handleExit = () => {
+        if (ws) {
+            ws.send(`player exit`);
+        }
+        clearLocalStorage(session_id)
+        navigate("/")
+    }    
+
 
 
     if (isLoading) {
@@ -136,18 +150,16 @@ function OnlineGamePage() {
 
     if (isSuccess) {
 
-        const dataOfLocalTurns = localStorage.getItem(`turns / ${session_id}`)
-        if (dataOfLocalTurns) {
-            localTurns = JSON.parse(dataOfLocalTurns)
-        }
+        localTurns = JSON.parse(localStorage.getItem(`turns / ${session_id}`))
 
 
         let isEven
         if (!localTurns) {
             isEven = (turnsOpage.length + turnsXpage.length) % 2 == 0
-        } else {
+        } else {      
             isEven = (localTurns.turnsO.length + localTurns.turnsX.length) % 2 == 0
         } 
+
         let isMyTurn = false
         if ((data.player_num == data.start_user) && (isEven)) {
             isMyTurn = true
@@ -156,7 +168,6 @@ function OnlineGamePage() {
         } else {
             isMyTurn = false
         }
-        
         
 
         if (!localStorageData) {
@@ -181,12 +192,14 @@ function OnlineGamePage() {
                         isMyTurn = {isMyTurn}
                         turnFuncs = {[setTurnsXpage, setTurnsOpage, setlastChange]}
                     />
+
+                    <DisconnectPopup display={"none"}/>
     
-                    <button onClick={() => (navigate("/"))}>To MainPage</button>
+                    <button onClick={handleExit}>To MainPage</button>
                 </>
             ) 
         }
-        
+
         return(
             <>
                 <p>X turns: {turnsXpage}</p>
@@ -199,7 +212,9 @@ function OnlineGamePage() {
                     turnFuncs = {[setTurnsXpage, setTurnsOpage, setlastChange]}
                 />
 
-                <button onClick={() => (navigate("/"))}>To MainPage</button>
+                <DisconnectPopup display={"none"}/>
+
+                <button onClick={handleExit}>To MainPage</button>
             </>
         )        
     }

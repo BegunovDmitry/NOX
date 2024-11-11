@@ -24,7 +24,6 @@ async def websocket_game_endpoint(websocket: WebSocket, session_id: str, player_
     if session_id not in WS_sessions:
         WS_sessions[session_id] = dict()
     WS_sessions[session_id][session_data[f"player_{player_num}"]] = websocket
-    print(WS_sessions)
     for connection in WS_sessions[session_id]:
         await WS_sessions[session_id][connection].send_text(f"connect {player_num}")
     try:
@@ -35,8 +34,9 @@ async def websocket_game_endpoint(websocket: WebSocket, session_id: str, player_
                 redis = redis_lib.Redis(host='localhost', port=6379, db=0)
                 changing_data = redis.get(session_id).decode("utf-8")
                 changing_data = eval(changing_data)
-                changing_data[f"turns{changing_data['sign_player1']}"] = changing_data[f"turns{changing_data['sign_player1']}"] + [data]
-                redis.set(session_id, str(changing_data))
+                if len(data) == 1:
+                    changing_data[f"turns{changing_data['sign_player1']}"] = changing_data[f"turns{changing_data['sign_player1']}"] + [data]
+                    redis.set(session_id, str(changing_data))
                 redis.close()
                 await WS_sessions[session_id][changing_data["player_2"]].send_text({data})
 
@@ -44,8 +44,10 @@ async def websocket_game_endpoint(websocket: WebSocket, session_id: str, player_
                 redis = redis_lib.Redis(host='localhost', port=6379, db=0)
                 changing_data = redis.get(session_id).decode("utf-8")
                 changing_data = eval(changing_data)
-                changing_data[f"turns{changing_data['sign_player2']}"] = changing_data[f"turns{changing_data['sign_player2']}"] + [data]
-                redis.set(session_id, str(changing_data))
+
+                if len(data) == 1:
+                    changing_data[f"turns{changing_data['sign_player2']}"] = changing_data[f"turns{changing_data['sign_player2']}"] + [data]
+                    redis.set(session_id, str(changing_data))
                 redis.close()
                 await WS_sessions[session_id][changing_data["player_1"]].send_text(data)
 
@@ -53,6 +55,11 @@ async def websocket_game_endpoint(websocket: WebSocket, session_id: str, player_
         del WS_sessions[session_id][session_data[f"player_{player_num}"]]
         if not WS_sessions[session_id]:
             del WS_sessions[session_id]
+            redis = redis_lib.Redis(host='localhost', port=6379, db=0)
+            print("DISCONNECT")
+            print(redis.get(session_id))
+            redis.delete(session_id)
+            redis.close()
         else:
             for connection in WS_sessions[session_id]:
                 await WS_sessions[session_id][connection].send_text(f"disconnect {player_num}")

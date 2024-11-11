@@ -3,9 +3,14 @@ from fastapi import APIRouter, Depends
 from fastapi_users import FastAPIUsers
 from auth.auth import auth_backend
 from auth.manager import get_user_manager
-from auth.database import User
+from auth.database import User, engine
 
 import redis as redis_lib
+
+from config import settings
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from database.models import GameSQL
 
 import secrets
 import datetime
@@ -18,6 +23,9 @@ fastapi_users = FastAPIUsers[User, int](
     [auth_backend],
 )
 current_user = fastapi_users.current_user( optional=True )
+
+DATABASE_URL = f"postgresql+psycopg2://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
+engine = create_engine(DATABASE_URL)
 
 @router.get("/create_game_session")
 def create_game_session():
@@ -35,6 +43,8 @@ def create_game_session():
                       "player_2": "No",
                       "name_player_1": "Anonym",
                       "name_player_2": "Anonym",
+                      "rating_player_1": None,
+                      "rating_player_2": None,
                       "start_user_num": start_user,
                       "sign_player1": sign_player1,
                       "sign_player2": sign_player2,
@@ -75,6 +85,7 @@ def connect_game_session(session_id: str, user: User = Depends(current_user)):
     if user:
         session_data[f"player_{user_num}"] = user.id
         session_data[f"name_player_{user_num}"] = user.username
+        session_data[f"rating_player_{user_num}"] = user.rating
         redis.set(session_id,str(session_data))
     else:
         session_data[f"player_{user_num}"] = secrets.token_hex(nbytes=8)
@@ -98,17 +109,44 @@ def end_game_session(session_id: str):
     try:
         session_data = redis.get(session_id).decode("utf-8")
     except:
+        redis.close()
         return {"status": "session not found"}
+    redis.close()
 
     session_data = eval(session_data)
-    ######################################## put in db
-    print(session_data)
-    ###################################################
+    ########################################  db work
 
-    redis.delete(session_id)
-    redis.close()
+    with Session(bind=engine) as db_session:
+        finished_game = GameSQL(
+            player_1_id = (session_data["player_1"] if type(session_data["player_1"]) == int else None),
+            player_2_id = (session_data["player_2"] if type(session_data["player_2"]) == int else None),
+            turnsX = session_data["turnsX"],
+            turnsO = session_data["turnsO"],
+            winner = 1
+        )
+        db_session.add(finished_game)
+        db_session.commit()
+
+    # rating handler
+
+    ###################################################
 
     return({
         "status": "success",
         "session": session_id
     })
+
+
+# @router.delete("/delete_game_session/{session_id}")
+# def delete_game_session(session_id: str):
+#
+#     redis = redis_lib.Redis(host='localhost', port=6379, db=0)
+#     print("EXXXXIT")
+#     print(redis.get(session_id))
+#     redis.delete(session_id)
+#     redis.close()
+#
+#     return({
+#         "status": "deleted",
+#         "session": session_id
+#     })

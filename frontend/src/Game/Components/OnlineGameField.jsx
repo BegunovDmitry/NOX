@@ -17,6 +17,7 @@ const disableAll = () => {
 }
 
 function OnlineGameField(props) {
+    
 
     const winCombos = [
         ['1','2','3'], ['4','5','6'], ['7','8','9'], //rows
@@ -53,10 +54,7 @@ function OnlineGameField(props) {
 
 
     const checkWin = () => {
-        if ((turnsX.length + turnsO.length) >= 9) {
-            console.log("Nobody");
-        }
-        else if (((turnsX.length + turnsO.length) >= 4)) {
+        if (((turnsX.length + turnsO.length) >= 4)) {
             for (const i in winCombos) {
                 if (includesAll(turnsX, winCombos[i])) {
                     disableAll()
@@ -69,6 +67,8 @@ function OnlineGameField(props) {
                     break;
                 }
             }
+        } else if ((turnsX.length + turnsO.length) >= 9) {
+            console.log("Nobody");
         }
     }
 
