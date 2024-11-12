@@ -9,6 +9,7 @@ const createGameSession = () => {
     })
 }
 
+
 function CreateOnlineGame() {
 
     const navigate = useNavigate();
@@ -31,7 +32,7 @@ function CreateOnlineGame() {
         
     }
 
-    if (isSuccess) {
+    if (isSuccess) {   
         setTimeout(() => (navigate(`/online_game/${data.session}`)), 300)
     }
 

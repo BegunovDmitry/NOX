@@ -1,4 +1,4 @@
-.disconnect_popup {
+.exit_popup {
     display: none;
     position: fixed;
     z-index: 1;
@@ -12,7 +12,7 @@
 
 
   
-  .disconnect_popup-content {
+  .exit_popup-content {
     
     width: 50rem;
     height: 30rem;

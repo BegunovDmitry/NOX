@@ -1,29 +1,8 @@
 import { useEffect, useState } from "react"
 import "./GameFields.css"
 
-const includesAll = (arr, values) => {
-    for (const i in values) {
-        if (!(arr.includes(values[i]))) {
-            return false;
-        }
-    }
-    return true;
-}
-
-const disableAll = () => {
-    for (let i = 1; i <= 9; i++) {
-    document.getElementById(`cell_${i}`).classList.add("disabled")
-    }
-}
 
 function OnlineGameField(props) {
-    
-
-    const winCombos = [
-        ['1','2','3'], ['4','5','6'], ['7','8','9'], //rows
-        ['1','4','7'], ['2','5','8'], ['3','6','9'], //cols
-        ['1','5','9'], ['3','5','7'] //diagonals
-    ]
 
     const [turnsX, setTurnsX] = useState(props.turns[0])
     const [turnsO, setTurnsO] = useState(props.turns[1])
@@ -52,26 +31,6 @@ function OnlineGameField(props) {
         })
     }, [props])
 
-
-    const checkWin = () => {
-        if (((turnsX.length + turnsO.length) >= 4)) {
-            for (const i in winCombos) {
-                if (includesAll(turnsX, winCombos[i])) {
-                    disableAll()
-                    console.log("X won!"); 
-                    break;
-                }
-                if (includesAll(turnsO, winCombos[i])) {
-                    disableAll()
-                    console.log("O won!"); 
-                    break;
-                }
-            }
-        } else if ((turnsX.length + turnsO.length) >= 9) {
-            console.log("Nobody");
-        }
-    }
-
     const handleClick = (cell_num) => {
         if (props.user_sign == "X") {
             cell_num.classList.add("X")
@@ -85,8 +44,6 @@ function OnlineGameField(props) {
     }
 
     useEffect(() => {
-        checkWin()
-
         if (props.user_sign == "X") {
             props.turnFuncs[0](turnsX)
         } else {

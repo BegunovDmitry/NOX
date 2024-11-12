@@ -1,5 +1,6 @@
 import OnlineGameField from "./Components/OnlineGameField";
 import DisconnectPopup from "./Components/DisconnectPopup";
+import ExitPopup from "./Components/ExitPopup"
 
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom";
@@ -7,6 +8,25 @@ import { useQuery } from "@tanstack/react-query";
 
 import axios from "axios";
 
+
+const winCombos = [
+    ['1','2','3'], ['4','5','6'], ['7','8','9'], //rows
+    ['1','4','7'], ['2','5','8'], ['3','6','9'], //cols
+    ['1','5','9'], ['3','5','7'] //diagonals
+]
+
+const includesAll = (arr, values) => {
+    for (const i in values) {
+        if (!(arr.includes(values[i]))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+const setLocalStorageEndGameStatus = (session_id) => {
+    localStorage.setItem(`isEnd \ ${session_id}`, true)
+}
 
 const connectGameSession = (session_id) => {
     const localData = localStorage.getItem(session_id);
@@ -41,8 +61,9 @@ const setTurns = (session_id, oldLocalTurns, newTurnX, newTurnsO) => {
 }
 
 const clearLocalStorage = (session_id) => {
-    localStorage.removeItem(session_id)
+    localStorage.removeItem(session_id);
     localStorage.removeItem(`turns / ${session_id}`)
+    localStorage.removeItem(`isEnd \ ${session_id}`)
 }
 
 let localTurns
@@ -53,14 +74,18 @@ function OnlineGamePage() {
     let {session_id} = useParams()
     const navigate = useNavigate();
 
-    const [turnsXpage, setTurnsXpage] = useState([])
-    const [turnsOpage, setTurnsOpage] = useState([])
+    const [isDisconnect, setIsDisconnect] = useState(false)
+    const [isGameEnded, setIsGameEnded] = useState(localStorage.getItem(`isEnd \ ${session_id}`) ?? false)
+    const [isPlayerWon, setisPlayerWon] = useState(false)
+
+    const [turnsXpage, setTurnsXpage] = useState(JSON.parse(localStorage.getItem(`turns / ${session_id}`))?.turnsX ?? [])
+    const [turnsOpage, setTurnsOpage] = useState(JSON.parse(localStorage.getItem(`turns / ${session_id}`))?.turnsO ?? [])
     const [lastChange, setlastChange] = useState("")
 
     const [ws, setWs] = useState(null);
     const localStorageData = localStorage.getItem(session_id)
-    
 
+    
     const setLocalTurns = () => {
         localTurns = JSON.parse(localStorage.getItem(`turns / ${session_id}`))
     }
@@ -76,9 +101,20 @@ function OnlineGamePage() {
 
     useEffect(() => {
         if (isSuccess && data) {
+
+            const disconnect_popup = document.querySelector(".disconnect_popup")
+            const exit_popup = document.querySelector(".exit_popup")
+
+            if (data.player_num == 1 && !localTurns) {
+                setIsDisconnect(true)
+                disconnect_popup.style.display = 'block';
+            }
+
+
             const websocketUrl = `ws://127.0.0.1:8000/game/game_session/${session_id}/${data.player_num}`; // URL вашего WebSocket сервера
             const socket = new WebSocket(websocketUrl);
             setWs(socket);
+
 
             socket.onopen = () => {
                 console.log("WebSocket connected");
@@ -96,9 +132,20 @@ function OnlineGamePage() {
                         setTurns(session_id, localTurns, [event.data], [])
                         setLocalTurns()
                     }
+
+                } else if (event.data == `disconnect ${data.opponent_num}`) {
+                    setIsDisconnect(true)
+                    disconnect_popup.style.display = 'block';
+                
+                } else if (event.data == `connect ${data.opponent_num}`) {
+                    disconnect_popup.style.display = 'none';
+                    setIsDisconnect(false)
+
                 } else if (event.data == "player exit") {
-                    clearLocalStorage(session_id)
-                    navigate("/")
+                    setIsDisconnect(true)
+                    exit_popup.style.display = 'block';
+                    socket.close() 
+                    setIsGameEnded(true)
                 }
             };
 
@@ -134,8 +181,65 @@ function OnlineGamePage() {
         }
     }, [lastChange])
 
+
+    const checkWin = () => {
+        if (((turnsXpage.length + turnsOpage.length) >= 4)) {
+            for (const i in winCombos) {
+                if (includesAll(turnsXpage, winCombos[i])) {
+                    setIsGameEnded(true)
+                    if (ws) {
+                        ws.close()
+                    }
+                    if (isSuccess) {
+                        if (data[`sign_player${data.player_num}`] == "X") {
+                            setisPlayerWon(true)
+                            const exit_popup = document.querySelector(".exit_popup")
+                            exit_popup.style.display = 'block';
+                        } else {
+                            const exit_popup = document.querySelector(".exit_popup")
+                            exit_popup.style.display = 'block';
+                        }
+                    }
+                    setLocalStorageEndGameStatus(session_id)
+                    console.log("X won!"); 
+                    break;
+                }
+                if (includesAll(turnsOpage, winCombos[i])) {
+                    setIsGameEnded(true)
+                    if (ws) {
+                        ws.close()
+                    }
+                    if (isSuccess) {
+                        if (data[`sign_player${data.player_num}`] == "O") {
+                            setisPlayerWon(true)
+                            const exit_popup = document.querySelector(".exit_popup")
+                            exit_popup.style.display = 'block';
+                        } else {
+                            const exit_popup = document.querySelector(".exit_popup")
+                            exit_popup.style.display = 'block';
+                        }
+                    }
+                    setLocalStorageEndGameStatus(session_id)
+                    console.log("O won!"); 
+                    break;
+                }
+            }
+        } else if ((turnsXpage.length + turnsOpage.length) >= 9) {
+            if (ws) {
+                ws.close()
+            }
+            setIsGameEnded(true)
+            setLocalStorageEndGameStatus(session_id)
+            console.log("Nobody");
+        }
+    }
+
+    useEffect(() => {
+        checkWin()
+    }, [turnsXpage, turnsOpage])
+
     const handleExit = () => {
-        if (ws) {
+        if (ws && !isGameEnded) {
             ws.send(`player exit`);
         }
         clearLocalStorage(session_id)
@@ -161,12 +265,14 @@ function OnlineGamePage() {
         } 
 
         let isMyTurn = false
-        if ((data.player_num == data.start_user) && (isEven)) {
-            isMyTurn = true
-        } else if ((data.player_num != data.start_user) && (!isEven)) {
-            isMyTurn = true
-        } else {
-            isMyTurn = false
+        if (!isGameEnded) {
+            if ((data.player_num == data.start_user) && (isEven)) {
+                isMyTurn = true
+            } else if ((data.player_num != data.start_user) && (!isEven)) {
+                isMyTurn = true
+            } else {
+                isMyTurn = false
+            }
         }
         
 
@@ -174,6 +280,7 @@ function OnlineGamePage() {
             localStorage.setItem(session_id, JSON.stringify({data: {
                 status: data.status,
                 player_num: data.player_num,
+                opponent_num: data.opponent_num,
                 start_user: data.start_user,
                 sign_player1: data.sign_player1,
                 sign_player2: data.sign_player2
@@ -193,7 +300,9 @@ function OnlineGamePage() {
                         turnFuncs = {[setTurnsXpage, setTurnsOpage, setlastChange]}
                     />
 
-                    <DisconnectPopup display={"none"}/>
+                    <DisconnectPopup disconnect={isDisconnect} session={session_id}/>
+                    <ExitPopup end_by_disconnect={isDisconnect} is_won={isPlayerWon}/>
+
     
                     <button onClick={handleExit}>To MainPage</button>
                 </>
@@ -212,7 +321,8 @@ function OnlineGamePage() {
                     turnFuncs = {[setTurnsXpage, setTurnsOpage, setlastChange]}
                 />
 
-                <DisconnectPopup display={"none"}/>
+                <DisconnectPopup disconnect={isDisconnect} session={session_id}/>
+                <ExitPopup end_by_disconnect={isDisconnect} is_won={isPlayerWon}/>
 
                 <button onClick={handleExit}>To MainPage</button>
             </>

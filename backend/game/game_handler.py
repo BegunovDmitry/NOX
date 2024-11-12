@@ -75,8 +75,10 @@ def connect_game_session(session_id: str, user: User = Depends(current_user)):
 
     if session_data["player_1"] == "No":
         user_num = 1
+        opponent_num = 2
     elif session_data["player_2"] == "No":
         user_num = 2
+        opponent_num = 1
     else:
         return {
             "status": "All players already connected"
@@ -96,6 +98,7 @@ def connect_game_session(session_id: str, user: User = Depends(current_user)):
     return {
         "status": "success",
         "player_num": user_num,
+        "opponent_num": opponent_num,
         "start_user": session_data["start_user_num"],
         "sign_player1": session_data["sign_player1"],
         "sign_player2": session_data["sign_player2"]
