@@ -1,5 +1,4 @@
 import "./ExitPopup.css"
-import { useNavigate } from "react-router-dom";
 
 
 
@@ -9,17 +8,17 @@ const handleClosePopup = () => {
 
 function ExitPopup(props) {
 
-    const navigate = useNavigate();
- 
-
     let info_msg = "Game has been finished"
-    let end_msg = "You lose :/"
+    let end_msg = "Nobody won (*-*)"
     if (props.end_by_disconnect) {
         info_msg = "Your opponent left the game"
         end_msg = "You won!"
-    } else if (props.is_won) {
+    } else if (props.is_won == "Yes") {
         info_msg = "Game has been finished"
         end_msg = "You won!"
+    } else if (props.is_won == "No") {
+        info_msg = "Game has been finished"
+        end_msg = "You lose :/"
     }
 
     return(

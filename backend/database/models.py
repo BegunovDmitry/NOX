@@ -22,10 +22,13 @@ class UserSQL(Base):
 class GameSQL(Base):
     __tablename__ = "game"
     id = Column(Integer, primary_key=True)
-    player_1_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    player_1_id = Column(Integer, ForeignKey("user.id"))
     player_2_id = Column(Integer, ForeignKey("user.id"))
+    player_1_name = Column(String)
+    player_2_name = Column(String)
     turnsX = Column(ARRAY(String))
     turnsO = Column(ARRAY(String))
     winner = Column(Integer)
+    created_at = Column(TIMESTAMP, default=datetime.utcnow)
 
 

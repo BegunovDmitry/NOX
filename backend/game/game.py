@@ -55,12 +55,10 @@ async def websocket_game_endpoint(websocket: WebSocket, session_id: str, player_
         del WS_sessions[session_id][session_data[f"player_{player_num}"]]
         if not WS_sessions[session_id]:
             del WS_sessions[session_id]
-            redis = redis_lib.Redis(host='localhost', port=6379, db=0)
-            print("DISCONNECT")
-            print(redis.get(session_id))
-            redis.delete(session_id)
-            redis.close()
         else:
             for connection in WS_sessions[session_id]:
-                await WS_sessions[session_id][connection].send_text(f"disconnect {player_num}")
+                try:
+                    await WS_sessions[session_id][connection].send_text(f"disconnect {player_num}")
+                except:
+                    pass
 

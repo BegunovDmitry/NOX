@@ -10,7 +10,7 @@ import redis as redis_lib
 from config import settings
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from database.models import GameSQL
+from database.models import GameSQL, UserSQL
 
 import secrets
 import datetime
@@ -104,8 +104,8 @@ def connect_game_session(session_id: str, user: User = Depends(current_user)):
         "sign_player2": session_data["sign_player2"]
     }
 
-@router.post("/end_game_session/{session_id}")
-def end_game_session(session_id: str):
+@router.post("/end_game_session/{session_id}/{winner_num}")
+def end_game_session(session_id: str, winner_num: int):
 
     redis = redis_lib.Redis(host='localhost', port=6379, db=0)
 
@@ -119,18 +119,38 @@ def end_game_session(session_id: str):
     session_data = eval(session_data)
     ########################################  db work
 
-    with Session(bind=engine) as db_session:
-        finished_game = GameSQL(
-            player_1_id = (session_data["player_1"] if type(session_data["player_1"]) == int else None),
-            player_2_id = (session_data["player_2"] if type(session_data["player_2"]) == int else None),
-            turnsX = session_data["turnsX"],
-            turnsO = session_data["turnsO"],
-            winner = 1
-        )
-        db_session.add(finished_game)
-        db_session.commit()
+    if (type(session_data["player_1"]) == int or type(session_data["player_2"]) == int):
+        with Session(bind=engine) as db_session:
+            finished_game = GameSQL(
+                player_1_id = (session_data["player_1"] if type(session_data["player_1"]) == int else None),
+                player_2_id = (session_data["player_2"] if type(session_data["player_2"]) == int else None),
+                player_1_name = session_data["name_player_1"],
+                player_2_name = session_data["name_player_2"],
+                turnsX = session_data["turnsX"],
+                turnsO = session_data["turnsO"],
+                winner = (winner_num if winner_num != 0 else None)
+            )
+            db_session.add(finished_game)
 
-    # rating handler
+            # rating handler
+            if type(session_data["player_1"]) == int:
+                if (winner_num != 0):
+                    player_1 = db_session.query(UserSQL).get(session_data["player_1"])
+                    if winner_num == 1:
+                        player_1.rating += 30
+                    else:
+                        player_1.rating -= 30
+                    db_session.add(player_1)
+            if type(session_data["player_2"]) == int:
+                if (winner_num != 0):
+                    player_2 = db_session.query(UserSQL).get(session_data["player_2"])
+                    if winner_num == 2:
+                        player_2.rating += 30
+                    else:
+                        player_2.rating -= 30
+                    db_session.add(player_2)
+
+            db_session.commit()
 
     ###################################################
 
@@ -140,16 +160,16 @@ def end_game_session(session_id: str):
     })
 
 
-# @router.delete("/delete_game_session/{session_id}")
-# def delete_game_session(session_id: str):
-#
-#     redis = redis_lib.Redis(host='localhost', port=6379, db=0)
-#     print("EXXXXIT")
-#     print(redis.get(session_id))
-#     redis.delete(session_id)
-#     redis.close()
-#
-#     return({
-#         "status": "deleted",
-#         "session": session_id
-#     })
+@router.delete("/delete_game_session/{session_id}")
+def delete_game_session(session_id: str):
+
+    redis = redis_lib.Redis(host='localhost', port=6379, db=0)
+    print("EXXXXIT")
+    print(redis.get(session_id))
+    redis.delete(session_id)
+    redis.close()
+
+    return({
+        "status": "deleted",
+        "session": session_id
+    })

@@ -76,7 +76,7 @@ function OnlineGamePage() {
 
     const [isDisconnect, setIsDisconnect] = useState(false)
     const [isGameEnded, setIsGameEnded] = useState(localStorage.getItem(`isEnd \ ${session_id}`) ?? false)
-    const [isPlayerWon, setisPlayerWon] = useState(false)
+    const [isPlayerWon, setisPlayerWon] = useState("No")
 
     const [turnsXpage, setTurnsXpage] = useState(JSON.parse(localStorage.getItem(`turns / ${session_id}`))?.turnsX ?? [])
     const [turnsOpage, setTurnsOpage] = useState(JSON.parse(localStorage.getItem(`turns / ${session_id}`))?.turnsO ?? [])
@@ -104,8 +104,9 @@ function OnlineGamePage() {
 
             const disconnect_popup = document.querySelector(".disconnect_popup")
             const exit_popup = document.querySelector(".exit_popup")
+            const is_first_turn = !localStorage.getItem(`turns / ${session_id}`)
 
-            if (data.player_num == 1 && !localTurns) {
+            if (data.player_num == 1 && is_first_turn) {
                 setIsDisconnect(true)
                 disconnect_popup.style.display = 'block';
             }
@@ -138,14 +139,27 @@ function OnlineGamePage() {
                     disconnect_popup.style.display = 'block';
                 
                 } else if (event.data == `connect ${data.opponent_num}`) {
+                    if (is_first_turn) {
+                        localStorage.setItem(`turns / ${session_id}`, JSON.stringify(
+                            {
+                                turnsX: [],
+                                turnsO: []
+                            }
+                        ))
+                    }
                     disconnect_popup.style.display = 'none';
                     setIsDisconnect(false)
 
                 } else if (event.data == "player exit") {
                     setIsDisconnect(true)
                     exit_popup.style.display = 'block';
-                    socket.close() 
                     setIsGameEnded(true)
+
+                    axios.post(`http://127.0.0.1:8000/game_handler/end_game_session/${session_id}/${data.player_num}`)
+                    axios.delete(`http://127.0.0.1:8000/game_handler/delete_game_session/${session_id}`)
+
+
+                    socket.close() 
                 }
             };
 
@@ -183,53 +197,67 @@ function OnlineGamePage() {
 
 
     const checkWin = () => {
-        if (((turnsXpage.length + turnsOpage.length) >= 4)) {
+        if (((turnsXpage.length + turnsOpage.length) >= 4 && (turnsXpage.length + turnsOpage.length) <= 8)) {
             for (const i in winCombos) {
                 if (includesAll(turnsXpage, winCombos[i])) {
-                    setIsGameEnded(true)
-                    if (ws) {
-                        ws.close()
-                    }
                     if (isSuccess) {
                         if (data[`sign_player${data.player_num}`] == "X") {
-                            setisPlayerWon(true)
+                            setisPlayerWon("Yes")
                             const exit_popup = document.querySelector(".exit_popup")
                             exit_popup.style.display = 'block';
+
+                            axios.post(`http://127.0.0.1:8000/game_handler/end_game_session/${session_id}/${data.player_num}`)
+                            axios.delete(`http://127.0.0.1:8000/game_handler/delete_game_session/${session_id}`)
+
                         } else {
                             const exit_popup = document.querySelector(".exit_popup")
                             exit_popup.style.display = 'block';
                         }
                     }
+                    setIsGameEnded(true)
                     setLocalStorageEndGameStatus(session_id)
+                    if (ws) {
+                        ws.close()
+                    }
                     console.log("X won!"); 
                     break;
                 }
                 if (includesAll(turnsOpage, winCombos[i])) {
-                    setIsGameEnded(true)
-                    if (ws) {
-                        ws.close()
-                    }
                     if (isSuccess) {
                         if (data[`sign_player${data.player_num}`] == "O") {
-                            setisPlayerWon(true)
+                            setisPlayerWon("Yes")
                             const exit_popup = document.querySelector(".exit_popup")
                             exit_popup.style.display = 'block';
+
+                            axios.post(`http://127.0.0.1:8000/game_handler/end_game_session/${session_id}/${data.player_num}`)
+                            axios.delete(`http://127.0.0.1:8000/game_handler/delete_game_session/${session_id}`)
+
                         } else {
                             const exit_popup = document.querySelector(".exit_popup")
                             exit_popup.style.display = 'block';
                         }
                     }
+                    setIsGameEnded(true)
                     setLocalStorageEndGameStatus(session_id)
+                    if (ws) {
+                        ws.close()
+                    }
                     console.log("O won!"); 
                     break;
                 }
             }
         } else if ((turnsXpage.length + turnsOpage.length) >= 9) {
-            if (ws) {
-                ws.close()
+            setisPlayerWon("Nobody")
+            const exit_popup = document.querySelector(".exit_popup")
+            exit_popup.style.display = 'block'
+            if (data.player_num == 1) {
+                axios.post(`http://127.0.0.1:8000/game_handler/end_game_session/${session_id}/0`)
             }
             setIsGameEnded(true)
             setLocalStorageEndGameStatus(session_id)
+            if (ws) {
+                ws.close()
+            }
             console.log("Nobody");
         }
     }

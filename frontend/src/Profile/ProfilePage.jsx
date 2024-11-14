@@ -1,6 +1,7 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import HistoryField from "./Components/HistoryField";
 
 
 const getUserData = () => {
@@ -64,7 +65,10 @@ function ProfilePage() {
                 <p>Profile Page</p>
                 <p>{data.username}</p>
                 <p>{data.email}</p>
-                <Link to="/"><button>To MainPage</button></Link>
+
+                <HistoryField player_id={data.id}/>
+
+                <button onClick={() => (navigate("/"))}>To MainPage</button>
                 <button onClick={handleLogout}>Logout</button>
                 <button onClick={() => (navigate("/edit_profile"))}>Edit profile</button>
             </>

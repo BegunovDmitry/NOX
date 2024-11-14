@@ -1,0 +1,62 @@
+.history_element {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    width: 30rem;
+    height: 15rem;
+    border: solid black 3px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.history_game_field {
+    justify-self: center;
+    align-self: center;
+    display: grid;
+    grid-template-columns: repeat(3, 4rem);
+    grid-template-rows: repeat(3, 4rem);
+    gap: 0.5rem;
+  }
+  
+  .history_cell {
+    position: relative;
+    background-color: violet;
+    border: 1px solid;
+    border-color:black;
+  }
+
+  .history_cell.O:before,
+  .history_cell.O:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 0.5rem solid #f2ebd3;
+  }
+
+  .history_cell.X:before,
+  .history_cell.X:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 3.5rem;
+    height: 0.5rem;
+    background: #545454;
+  }
+  
+  .history_cell.X:before {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  
+  .history_cell.X:after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+
+  .history_game_info {
+    justify-self: center;
+    align-self: center;
+  }

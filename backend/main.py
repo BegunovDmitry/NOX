@@ -1,3 +1,4 @@
+from datetime import datetime
 
 from fastapi_users import FastAPIUsers
 
@@ -10,6 +11,13 @@ from auth.database import User
 from auth.manager import get_user_manager
 from auth.schemas import UserRead, UserCreate, UserUpdate
 
+from config import settings
+from sqlalchemy import create_engine, select, desc
+from sqlalchemy.sql import or_
+from sqlalchemy.orm import Session
+from database.models import GameSQL
+from database.schemas import Game as GamePY
+
 from game.game import router as game_router
 from game.game_handler import router as game_handler_router
 
@@ -18,6 +26,8 @@ app = FastAPI(
     title="NOX"
 )
 
+DATABASE_URL = f"postgresql+psycopg2://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
+engine = create_engine(DATABASE_URL)
 
 ########## CORS ##########
 
@@ -76,6 +86,13 @@ def get_authorised_user_data(user: User = Depends(current_user)):
     return user
 
 
-@app.get("/unprotected-route", dependencies=[Depends(current_user)])
-def unprotected_route():
-    return f"Hello, anonym"
+@app.get("/get_all_user_games")
+def get_all_user_games(user: User = Depends(current_user)):
+    with Session(bind=engine) as db_session:
+        stmt = select(GameSQL).where(or_(GameSQL.player_1_id == user.id, GameSQL.player_2_id == user.id)).order_by(desc(GameSQL.created_at))
+        res = []
+        for game in db_session.execute(stmt).scalars():
+            game = dict(GamePY.model_validate(game.__dict__))
+            game["created_at"] = datetime.strftime(game["created_at"], '%d-%m-%Y %H:%M:%S')
+            res.append(game)
+    return res
