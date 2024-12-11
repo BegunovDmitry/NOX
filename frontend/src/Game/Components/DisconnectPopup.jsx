@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import "./DisconnectPopup.css"
 import { useNavigate } from "react-router-dom";
 
 
@@ -20,17 +19,17 @@ function DisconnectPopup(props) {
         }, 1000)
     }
 
-const handleExitGame = () => {
-    localStorage.removeItem(props.session);
-    localStorage.removeItem(`turns / ${props.session}`)
-    navigate('/')
-}
+    const handleExitGame = () => {
+        localStorage.removeItem(props.session);
+        localStorage.removeItem(`turns / ${props.session}`)
+        navigate('/')
+    }
 
     return(
         <div className="disconnect_popup">
             <div className="disconnect_popup-content">
-                <p>There is no people on the other side</p>
-                <p>Wait your opponent connection: {waitTime}sec.</p>
+                <p className="disconnect_popup_msg">There is no people on the other side</p>
+                <p className="disconnect_popup_timer">Wait your opponent connection: {waitTime}sec.</p>
                 <button onClick={handleExitGame}>Exit game</button>
             </div>
         </div>

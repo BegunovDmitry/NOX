@@ -1,5 +1,3 @@
-import "./ExitPopup.css"
-
 
 
 const handleClosePopup = () => {
@@ -24,8 +22,8 @@ function ExitPopup(props) {
     return(
         <div className="exit_popup">
             <div className="exit_popup-content">
-                <p>{info_msg}</p>
-                <p>{end_msg}</p>
+                <p className="exit_popup_msg">{info_msg}</p>
+                <p className="exit_popup_end_msg">{end_msg}</p>
                 <button onClick={handleClosePopup}>Okay</button>
             </div>
         </div>

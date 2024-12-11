@@ -108,7 +108,7 @@ function OnlineGamePage() {
 
             if (data.player_num == 1 && is_first_turn) {
                 setIsDisconnect(true)
-                disconnect_popup.style.display = 'block';
+                disconnect_popup.style.display = 'flex';
             }
 
 
@@ -136,7 +136,7 @@ function OnlineGamePage() {
 
                 } else if (event.data == `disconnect ${data.opponent_num}`) {
                     setIsDisconnect(true)
-                    disconnect_popup.style.display = 'block';
+                    disconnect_popup.style.display = 'flex';
                 
                 } else if (event.data == `connect ${data.opponent_num}`) {
                     if (is_first_turn) {
@@ -152,7 +152,7 @@ function OnlineGamePage() {
 
                 } else if (event.data == "player exit") {
                     setIsDisconnect(true)
-                    exit_popup.style.display = 'block';
+                    exit_popup.style.display = 'flex';
                     setIsGameEnded(true)
 
                     axios.post(`http://127.0.0.1:8000/game_handler/end_game_session/${session_id}/${data.player_num}`)
@@ -204,14 +204,14 @@ function OnlineGamePage() {
                         if (data[`sign_player${data.player_num}`] == "X") {
                             setisPlayerWon("Yes")
                             const exit_popup = document.querySelector(".exit_popup")
-                            exit_popup.style.display = 'block';
+                            exit_popup.style.display = 'flex';
 
                             axios.post(`http://127.0.0.1:8000/game_handler/end_game_session/${session_id}/${data.player_num}`)
                             axios.delete(`http://127.0.0.1:8000/game_handler/delete_game_session/${session_id}`)
 
                         } else {
                             const exit_popup = document.querySelector(".exit_popup")
-                            exit_popup.style.display = 'block';
+                            exit_popup.style.display = 'flex';
                         }
                     }
                     setIsGameEnded(true)
@@ -227,14 +227,14 @@ function OnlineGamePage() {
                         if (data[`sign_player${data.player_num}`] == "O") {
                             setisPlayerWon("Yes")
                             const exit_popup = document.querySelector(".exit_popup")
-                            exit_popup.style.display = 'block';
+                            exit_popup.style.display = 'flex';
 
                             axios.post(`http://127.0.0.1:8000/game_handler/end_game_session/${session_id}/${data.player_num}`)
                             axios.delete(`http://127.0.0.1:8000/game_handler/delete_game_session/${session_id}`)
 
                         } else {
                             const exit_popup = document.querySelector(".exit_popup")
-                            exit_popup.style.display = 'block';
+                            exit_popup.style.display = 'flex';
                         }
                     }
                     setIsGameEnded(true)
@@ -249,7 +249,7 @@ function OnlineGamePage() {
         } else if ((turnsXpage.length + turnsOpage.length) >= 9) {
             setisPlayerWon("Nobody")
             const exit_popup = document.querySelector(".exit_popup")
-            exit_popup.style.display = 'block'
+            exit_popup.style.display = 'flex'
             if (data.player_num == 1) {
                 axios.post(`http://127.0.0.1:8000/game_handler/end_game_session/${session_id}/0`)
             }

@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import "./MainPage.css"
 
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -32,7 +31,7 @@ function MainPage() {
     if (isError) {
         return(
             <>
-                <div className="title"><p>Main Page</p></div>
+                <div className="title"><p>Let's play.</p></div>
     
                 <OflineGameField/>
     
@@ -47,8 +46,8 @@ function MainPage() {
             <>
                 <div className="title"><p>Main Page</p></div>
 
-                <p>Your account: {data.username}</p>
-                <p>Your rating: {data.rating}</p>
+                <p className="main_page_name">{data.username}</p>
+                <p className="main_page_rating">Your rating: {data.rating}</p>
     
                 <OflineGameField/>
     

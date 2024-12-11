@@ -49,30 +49,35 @@ function ProfilePage() {
 
     if (isError) {
         return (
-            <>
-            <p>Profile Page</p>
-            <p>Please enter your account</p>
-            <button onClick={() => (navigate("/login"))}>Login</button><br/>
-            <button onClick={() => (navigate("/register"))}>Registration</button><br/>
-            <button onClick={() => (navigate("/"))}>To MainPage</button>
-            </>
+            <div className="profile_page_content">
+                <p className="profile_page_title">Profile Page</p>
+                <p className="profile_page_msg">Please enter your account</p>
+                <button onClick={() => (navigate("/login"))}>Login</button><br/>
+                <button onClick={() => (navigate("/register"))}>Registration</button><br/>
+                <button onClick={() => (navigate("/"))}>To MainPage</button>
+            </div>
         )
     }
 
     if (isSuccess) {
         return(
-            <>
-                <p>Profile Page</p>
-                <p>{data.username}</p>
-                <p>{data.email}</p>
+            <div className="profile_page_logined">
+                
+                <div className="profile_page_content">
+                    <p className="profile_page_title">Profile Page</p>
+                    <p className="profile_page_name">{data.username}</p>
+                    <p className="profile_page_email">{data.email}</p>
 
-                <HistoryField player_id={data.id}/>
+                    <button onClick={() => (navigate("/"))}>To MainPage</button>
+                    <button onClick={handleLogout}>Logout</button>
+                    <button onClick={() => (navigate("/edit_profile"))}>Edit profile</button>
+                </div>
+                
+                <div className="profile_page_history">
+                 <HistoryField player_id={data.id}/>   
+                </div>
 
-                <button onClick={() => (navigate("/"))}>To MainPage</button>
-                <button onClick={handleLogout}>Logout</button>
-                <button onClick={() => (navigate("/edit_profile"))}>Edit profile</button>
-            </>
-            
+            </div>
         )
     }
 }

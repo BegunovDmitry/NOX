@@ -12,7 +12,7 @@ function App() {
   
   return (
       <>
-        <div>
+        <div className="NOX">
           <p>
             NOX
           </p>

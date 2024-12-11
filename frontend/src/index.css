@@ -8,4 +8,351 @@
   padding: 0;
   margin: 0;
   user-select: none;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #121212; /* Темный фон */
+  color: #e0e0e0; /* Светлый текст для лучшей читаемости */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  position: relative;
+}
+
+/* Стили для заголовка */
+.title {
+  font-size: 4rem; /* Большой шрифт для заголовка */
+  color: #bb86fc; /* Красивый синий цвет */
+}
+
+/* Стили для игрового поля */
+.game_field {
+  display: grid;
+  grid-template-columns: repeat(3, 120px); /* 3 колонки по 100 пикселей */
+  grid-gap: 15px; /* Расстояние между ячейками */
+  margin-bottom: 5px;
+  margin-top: 30px;
+}
+
+.cell {
+  width: 120px;
+  height: 120px;
+  background-color: #1e1e1e; /* Белый фон для ячеек */
+  border: 2px solid #bb86fc; /* Синяя рамка */
+  border-radius: 12px; /* Закругленные углы */
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Центрирование содержимого */
+  font-size: 1.5em; /* Размер текста */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Анимация для эффектов */
+  position: relative;
+}
+
+.cell:hover {
+  background-color: #3700b3; /* Цвет при наведении */
+  transform: scale(1.05); /* Увеличение при наведении */
+}
+
+.cell.disabled {
+  pointer-events: none;
+  border:none;
+}
+
+.cell.X:before,
+.cell.X:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 15vmin;
+  height: 2vmin;
+  background: #545454;
+}
+
+.cell.X:before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.cell.X:after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.cell.O:before,
+.cell.O:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10vmin;
+  height: 10vmin;
+  border-radius: 50%;
+  border: 2vmin solid #f2ebd3;
+}
+
+button {
+  padding: 12px 25px; /* Отступы кнопки */
+  margin: 10px; /* Отступ между кнопками */
+  background-color: #bb86fc; /* Светло-фиолетовый фон для кнопок */
+  border: none; /* Удаление рамки */
+  border-radius: 8px; /* Закругленные углы */
+  color: #121212; /* Цвет текста в кнопках */
+  font-size: 1.2em; /* Размер текста */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Эффекты при наведении */
+}
+
+button:hover {
+  background-color: #3700b3; /* Темный цвет кнопки при наведении */
+  transform: scale(1.05); /* Увеличение при наведении */
+}
+
+button:focus {
+  outline: none; /* Убираем обводку при фокусе */
+}
+
+.container {
+  text-align: center;
+}
+
+.NOX {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 2em;
+}
+
+.disconnect_popup {
+  position: fixed; /* Фиксированное положение для показа поверх всего контента */
+  top: 0; /* Указываем верхнее расположение */
+  left: 0; /* Указываем левое расположение */
+  width: 100%; /* Ширина на всю страницу */
+  height: 100%; /* Высота на всю страницу */
+  background-color: rgba(0, 0, 0, 0.8); /* Темный полупрозрачный фон */
+  display: none; /* Используем flexbox для центрирования содержимого */
+  align-items: center; /* Вертикальное выравнивание по центру */
+  justify-content: center; /* Горизонтальное выравнивание по центру */
+  z-index: 999; /* Убедитесь, что всплывающее окно выше других элементов */
+}
+
+.disconnect_popup-content {
+  background-color: #2c2c2c; /* Темно-серый цвет фона */
+  border-radius: 15px; /* Закругленные углы */
+  padding: 30px; /* Увеличенные отступы внутри содержимого */
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6); /* Более выраженная тень */
+  text-align: center;
+  max-width: 600px; /* Максимальная ширина всплывающего окна */
+  width: 80%; /* Ширина всплывающего окна будет 80% от родителя */
+}
+
+.disconnect_popup_msg {
+  color: #ff4081; /* Розовый цвет заголовка */
+  font-size: 2em; /* Размер шрифта для заголовка */
+  margin-bottom: 15px; /* Отступ снизу */
+}
+
+.disconnect_popup_timer {
+  margin: 0;
+  font-size: 1.5em;
+  color: #ffffff;
+  margin-bottom: 15px;
+}
+
+.exit_popup {
+  position: fixed; /* Фиксированное положение для показа поверх всего контента */
+  top: 0; /* Указываем верхнее расположение */
+  left: 0; /* Указываем левое расположение */
+  width: 100%; /* Ширина на всю страницу */
+  height: 100%; /* Высота на всю страницу */
+  background-color: rgba(0, 0, 0, 0.8); /* Темный полупрозрачный фон */
+  display: none; /* Используем flexbox для центрирования содержимого */
+  align-items: center; /* Вертикальное выравнивание по центру */
+  justify-content: center; /* Горизонтальное выравнивание по центру */
+  z-index: 999; /* Убедитесь, что всплывающее окно выше других элементов */
+}
+
+.exit_popup-content {
+  background-color: #2c2c2c; /* Темно-серый цвет фона */
+  border-radius: 15px; /* Закругленные углы */
+  padding: 30px; /* Увеличенные отступы внутри содержимого */
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6); /* Более выраженная тень */
+  text-align: center;
+  max-width: 600px; /* Максимальная ширина всплывающего окна */
+  width: 80%; /* Ширина всплывающего окна будет 80% от родителя */
+}
+
+.exit_popup_end_msg {
+  color: #ff4081; /* Розовый цвет заголовка */
+  font-size: 4em;
+  font-weight: 700;
+  margin-top: 15px; 
+  margin-bottom: 15px; /* Отступ снизу */
+}
+
+.exit_popup_msg {
+  margin: 0;
+  font-size: 1.5em;
+  color: #ffffff;
+}
+
+.profile_page_logined {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 3 колонки по 100 пикселей */
+  grid-gap: 15px; /* Расстояние между ячейками */
+  margin-bottom: 300px;
+  margin-top: 300px;
+}
+
+/* Основные стили для страницы профиля */
+.profile_page_content {
+  background-color: #1e1e1e; /* Фон для блока контента */
+  border-radius: 12px; /* Закругленные углы */
+  padding: 20px; /* Отступы вокруг контента */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для глубины */
+  text-align: center; /* Центрирование текста */
+  max-width: 400px; /* Максимальная ширина */
+  margin: auto; 
+}
+
+/* Стили для заголовка профиля */
+.profile_page_title {
+  font-size: 2em; /* Увеличенный размер шрифта */
+  color: #ffffff; /* Темно-серый цвет для заголовка */
+  margin-bottom: 20px; /* Отступ снизу */
+}
+
+/* Стили для сообщения на странице профиля */
+.profile_page_msg {
+  font-size: 1em; /* Стандартный размер шрифта */
+  color: #bebebe; /* Серый цвет для текста сообщения */
+  margin-bottom: 30px; /* Отступ снизу */
+}
+
+.profile_page_name {
+  margin: 0;
+  font-size: 1.5em;
+  color: #ffffff; /* Отступ снизу */
+}
+
+.profile_page_email {
+  margin: 0;
+  font-size: 1.5em;
+  color: #ffffff; /* Отступ снизу */
+}
+
+
+.profile_page_history {
+  max-height: 700px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.history_element {
+  display: grid;
+  grid-template-columns: 50% 50%;
+  width: 30rem;
+  height: 15rem;
+  border: solid 3px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.hist_el_win {
+  border-color: lightgreen;
+}
+.hist_el_lose {
+  border-color: lightcoral;
+}
+
+.history_game_field {
+  justify-self: center;
+  align-self: center;
+  display: grid;
+  grid-template-columns: repeat(3, 4rem);
+  grid-template-rows: repeat(3, 4rem);
+  gap: 0.5rem;
+}
+
+.history_cell {
+  position: relative;
+  background-color: #1e1e1e; /* Белый фон для ячеек */
+  border: 2px solid #bb86fc; /* Синяя рамка */
+  border-radius: 12px;
+}
+
+.history_cell.O:before,
+.history_cell.O:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 0.5rem solid #f2ebd3;
+}
+
+.history_cell.X:before,
+.history_cell.X:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3.5rem;
+  height: 0.5rem;
+  background: #545454;
+}
+
+.history_cell.X:before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.history_cell.X:after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.history_game_info {
+  justify-self: center;
+  align-self: center;
+}
+
+
+input {
+  width: 100%; /* Заполнение ширины родительского контейнера */
+  padding: 10px; /* Отступ внутри поля */
+  margin: 10px 0; /* Отступ сверху и снизу */
+  background-color: #1e1e1e; /* Фон полей */
+  border: 2px solid #bb86fc; /* Светло-фиолетовая рамка */
+  border-radius: 8px; /* Закругленные углы */
+  color: #e0e0e0; /* Цвет текста */
+  font-size: 1em; /* Размер текста */
+  transition: border-color 0.3s ease; /* Анимация при фокусе */
+}
+
+input:focus {
+  border-color: #6200ee; /* Изменение цвета рамки при фокусе */
+  outline: none; /* Убираем стандартное обрамление */
+}
+
+.main_page_name {
+  font-size: 2.5em; /* Увеличенный размер шрифта для выделения */
+  color: #ededed; /* Светло-фиолетовый цвет текста */
+  text-align: center; /* Центрирование текста */
+  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5); /* Легкая тень для улучшения читаемости */
+}
+
+.main_page_rating {
+  font-size: 1.5em; /* Размер шрифта немного меньше, чем для имени */
+  color: #e0e0e0; /* Светлый цвет текста для лучшей читаемости */
+  text-align: center; /* Центрирование текста */
+  background-color: #1e1e1e; /* Фон для визуального отделения */
+  padding: 10px; /* Отступ внутри элемента */
+  border-radius: 8px; /* Закругленные углы */
+  border: 2px solid #bb86fc; /* Светло-фиолетовая рамка */
+  transition: background-color 0.3s ease; /* Анимация для эффекта */
 }
